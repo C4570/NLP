@@ -1,34 +1,44 @@
+# Libreries
+
+# !pip install streamlit
+# !pip install requests
+# !pip install beautifulsoup4
+
+import requests
+from bs4 import BeautifulSoup
 import streamlit as st
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
 
-st.title('Librosa la sabrosa')
+def scrape_lectulandia():
+    url = "https://ww3.lectulandia.com/"
+    response = requests.get(url)
+    soup = BeautifulSoup(response.text, 'html.parser')
 
-'''
-Contenido obtenido de: www.kaggle.com/datasets/rounakbanik/pokemon
-'''
+    # Encuentra los elementos de la página web que contienen la información que quieres extraer.
+    # Por ejemplo, si los títulos de los libros están en etiquetas <h2>, podrías hacer:
+    book_titles = soup.find_all('h2')
 
-url = 'https://ww3.lectulandia.com/'
-PokemonDB = pd.read_csv(url)
-
-st.subheader('Raw data')
-st.write(PokemonDB.head())
-st.subheader('data describe')
-st.write(PokemonDB.describe())
-st.subheader('data map')
-
-fig, axs = plt.subplots(figsize=(8, 5))
-
-# Histograma
-sns.histplot(PokemonDB['Type'])
-axs.set_title('Histograma de el tipo de Pokémon')
-axs.set_xlabel('Sucursales')
-axs.set_ylabel('Frecuencia')
-
-plt.xticks(rotation=90)
-plt.tight_layout()
-st.pyplot(fig)
+    # Luego puedes extraer el texto de estos elementos y agregarlo a tu dataset.
+    for title in book_titles:
+        print(title.text)
+        
+        
+    
+def main(book_titles):
+    st.title("Mi Aplicación de Lectura")
+    respuesta = st.text_input("¿Qué tienes ganas de leer hoy?")
+    if respuesta:
+        st.write(f"¡Genial! Buscaremos libros relacionados con {respuesta}.")
+        if st.checkbox('Show raw data'):
+            st.subheader('Raw data')
+            st.write(book_titles)
+        st.write("Aquí tienes algunas recomendaciones:")
+        
+        
 
 
-st.write(PokemonDB['Type'].describe())
+if __name__ == "__main__":
+    scrape_lectulandia()
+    main(book_titles)
+
+
+
