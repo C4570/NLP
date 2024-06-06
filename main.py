@@ -5,14 +5,12 @@ import torch
 from transformers import BertTokenizer, BertModel
 from torch.nn.functional import cosine_similarity
 
-file_path= 'Libros.parquet'
+file_path = 'Libros.parquet'
 libros = pd.read_parquet(file_path)
-
 
 # Cargar el tokenizador y el modelo BERT multilingüe
 tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
 model = BertModel.from_pretrained('bert-base-multilingual-cased')
-
 # Definir la función para obtener los embeddings de un texto
 def get_embedding(text):
     # Tokenizar el texto, convirtiéndolo en tensores y asegurando la longitud máxima y el padding
@@ -27,33 +25,35 @@ def get_embedding(text):
 # Obtener los embeddings de las descripciones de los libros
 libros['Embedding'] = libros['Descripcion'].apply(get_embedding)
 
-# Configurar el título de la página
-st.set_page_config(page_title="Menú con Streamlit", layout="wide")
-
-#--------RECOMENDACIÓN DIRECTA----------#
-# Barra de búsqueda
-input_user = st.text_input('', value='¿Qué tienes ganas de leer hoy?')
-
-if input_user != '¿Qué tienes ganas de leer hoy?':
+# Definir la función para recomendar libros basados en la entrada del usuario
+def recomendar_libros(user_input):
     # Obtener el embedding de la entrada del usuario
-    user_embedding = get_embedding(input_user)
+    user_embedding = get_embedding(user_input)
     # Calcular la similitud del coseno entre el embedding del usuario y los embeddings de los libros
     libros['Similitud'] = libros['Embedding'].apply(lambda x: cosine_similarity(user_embedding, x).item())
     # Ordenar los libros por la similitud en orden descendente
     libros_ordenados = libros.sort_values(by='Similitud', ascending=False)
-    
     # Retornar los primeros 'top_n' libros más similares
-    recomendaciones = libros_ordenados.head(3)
-    
-    # Mostrar las recomendaciones
+    return libros_ordenados.head(3)
+
+#--------RECOMENDACION DIRECTA----------#
+# Barra de búsqueda
+input_user = st.text_input('', value='¿Qué tienes ganas de leer hoy?')
+
+if input_user != '¿Qué tienes ganas de leer hoy?':
+    # Obtener las recomendaciones
+    recomendaciones = recomendar_libros(input_user)
+    #Mostrar las recomendaciones
+    st.write("Recomendaciones:")
     for index, row in recomendaciones.iterrows():
-        print(f"Título: {row['Titulo']}")
-        print(f"Autor: {row['Autor']}")
-        print(f"Género: {', '.join(row['Genero'])}")
-        print(f"Descripción: {row['Descripcion']}\n")
-        print(f"Similitud: {row['Similitud']:.4f}\n")
-    
-    
+        st.write(f"**Título:** {row['Titulo']}")
+        st.write(f"**Autor:** {row['Autor']}")
+        st.write(f"**Género:** {', '.join(row['Genero'])}")
+        st.write(f"**Descripción:** {row['Descripcion']}")
+        st.write(f"**Similitud:** {row['Similitud']:.4f}")
+        st.write("---")
+
+          
     
     
 #--------GENERO----------#
